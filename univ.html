@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>고교-대학 연계 활동 설문(대학용)</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root{
+  --bg:#f3f5f8; --card:#fff; --ink:#1b2331; --ink2:#48536a; --muted:#7b8598;
+  --line:#dfe3ea; --line2:#edf0f4; --brand:#1c4a75; --brand-ink:#143758; --brand-soft:#e7eff7;
+  --ok:#0e7a68; --ok-soft:#dcf0eb; --warn:#9a5a00; --warn-soft:#fff3e0; --err:#bf3a2b; --err-soft:#fdecea;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:110px}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Pretendard,"Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;font-size:16px;line-height:1.65;word-break:keep-all;overflow-wrap:anywhere}
+button,input,textarea,select{font:inherit;color:inherit}
+.wrap{max-width:880px;margin:0 auto;padding:0 16px}
+[hidden]{display:none!important}
+
+/* 위 막대 */
+.topbar{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--line)}
+.topbar .row{display:flex;align-items:center;gap:12px;height:56px}
+.topbar .t{font-weight:700;font-size:15px;color:var(--brand-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
+.prog{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink2);white-space:nowrap}
+.bar{width:130px;height:8px;background:var(--line2);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--ok);transition:width .25s}
+.saved{font-size:12px;color:var(--muted);min-width:76px;text-align:right}
+.nav{display:flex;gap:6px;overflow-x:auto;padding:0 0 10px;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.nav a{flex:none;font-size:13px;padding:4px 11px;border-radius:99px;background:var(--line2);color:var(--ink2);text-decoration:none}
+.nav a.done{background:var(--ok-soft);color:var(--ok)}
+.nav a.cur{background:var(--brand);color:#fff}
+@media (max-width:640px){.bar{width:64px}.saved{display:none}.topbar .t{font-size:14px}}
+
+.testbar{background:var(--warn-soft);color:var(--warn);font-size:13.5px;font-weight:700;text-align:center;padding:7px 12px}
+
+/* 첫 화면 */
+.hero{background:var(--brand);color:#fff;padding:40px 0 38px}
+.hero .kicker{font-size:14px;opacity:.85}
+.hero h1{font-size:27px;line-height:1.35;margin:8px 0 18px;font-weight:800}
+.hero p{margin:0 0 10px;opacity:.96;max-width:760px}
+.hero .sign{margin-top:16px;font-size:14px;opacity:.88}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.meta span{background:rgba(255,255,255,.14);border-radius:8px;padding:6px 10px;font-size:13px}
+.start-row{margin-top:26px}
+@media (max-width:640px){.hero h1{font-size:22px}}
+body.intro .topbar{display:none}
+body:not(.intro) .hero{display:none}
+
+/* 화면 */
+.page{display:none}.page.on{display:block}
+.part-h{display:flex;align-items:baseline;gap:10px;margin:26px 0 6px}
+.part-h .num{font-weight:800;color:var(--brand);font-size:22px}
+.part-h h2{margin:0;font-size:22px;font-weight:800;line-height:1.35}
+.part-h.more{margin-top:34px}
+.lead{color:var(--ink2);margin:0 0 14px}
+.lead ul{margin:6px 0 0;padding-left:20px}
+.lead b{color:var(--ink)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin:0 0 14px}
+@media (max-width:640px){.card{padding:16px}}
+.q{padding:16px 0;border-top:1px solid var(--line2)}
+.card>.q:first-child{border-top:0;padding-top:2px}
+.card>.q:last-child{padding-bottom:2px}
+.q-h{font-weight:700;font-size:16.5px;margin:0 0 8px;line-height:1.5}
+.qn{color:var(--brand);margin-right:7px}
+.q-sub{color:var(--ink2);font-size:14.5px;margin:-2px 0 10px}
+.req{color:var(--err);font-weight:700;margin-left:3px}
+.tag{display:inline-block;font-size:12px;font-weight:700;border-radius:6px;padding:0 7px;margin-right:6px;background:var(--brand-soft);color:var(--brand);vertical-align:1px}
+.rmsg{display:none;color:var(--err);font-size:13px;margin-top:6px}
+.missing>.rmsg,.missing .rmsg.in{display:block}
+
+/* 보기(단일·복수) */
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opts.stack{flex-direction:column;align-items:stretch}
+.opts label{cursor:pointer;position:relative}
+.opts input{position:absolute;opacity:0;pointer-events:none}
+.opts span{display:flex;align-items:flex-start;gap:6px;border:1.5px solid var(--line);border-radius:12px;padding:8px 13px;background:#fff;font-size:15px;line-height:1.5;transition:background .12s,border-color .12s}
+.opts span i{font-style:normal;color:var(--brand);flex:none}
+.opts label:hover span{border-color:#9db2cb}
+.opts input:focus-visible+span{outline:3px solid #9cc3ea;outline-offset:1px}
+.opts input:checked+span{background:var(--brand);border-color:var(--brand);color:#fff}
+.opts input:checked+span i{color:#cfe0f1}
+.missing .opts span,.missing .rating span{border-color:var(--err)}
+.other-in{margin-top:8px;width:100%;border:1.5px solid var(--line);border-radius:10px;padding:9px 12px;background:#fff;display:none}
+.other-in.on{display:block}
+.maxmsg{display:none;font-size:13px;color:var(--warn);background:var(--warn-soft);border-radius:8px;padding:6px 10px;margin-top:8px}
+.maxmsg.on{display:block}
+
+/* 활동 카드(Ⅱ, Ⅴ) */
+.item{padding:18px 0;border-top:1px solid var(--line2)}
+.card>.item:first-child{border-top:0;padding-top:2px}
+.card>.item:last-child{padding-bottom:2px}
+.item-h{font-weight:800;font-size:16.5px;margin:0 0 4px}
+.item-h .no{color:var(--brand);margin-right:8px}
+.item-d{color:var(--ink2);font-size:14.5px;margin:0 0 12px}
+.sub{margin:0 0 12px}
+.sub:last-child{margin-bottom:0}
+.rlabel{font-size:13px;font-weight:700;color:var(--ink2);margin:0 0 6px}
+.chk{display:inline-flex;align-items:center;gap:8px;font-size:14.5px;cursor:pointer;color:var(--ink2)}
+.chk input{width:18px;height:18px;accent-color:var(--brand)}
+
+/* 5점 척도 */
+.rating{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;max-width:520px}
+.rating.dk{grid-template-columns:repeat(5,1fr) 1.15fr;max-width:630px}
+.rating label{position:relative;cursor:pointer}
+.rating input{position:absolute;opacity:0;pointer-events:none}
+.rating span{display:flex;flex-direction:column;align-items:center;justify-content:center;border:1.5px solid var(--line);border-radius:10px;padding:7px 2px;background:#fff;min-height:54px;transition:background .12s,border-color .12s}
+.rating span b{font-size:17px;line-height:1.2}
+.rating span small{font-size:11px;color:var(--muted);line-height:1.25;text-align:center;margin-top:2px}
+.rating label:hover span{border-color:#9db2cb}
+.rating input:focus-visible+span{outline:3px solid #9cc3ea;outline-offset:1px}
+.rating input:checked+span{background:var(--brand);border-color:var(--brand);color:#fff}
+.rating input:checked+span small{color:#dbe7f3}
+
+textarea,input[type=text]{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff;line-height:1.6}
+textarea{min-height:92px;resize:vertical}
+textarea.sm{min-height:58px}
+textarea:focus,input[type=text]:focus,select:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px #d6e4f2}
+.fgrid{display:grid;gap:10px}
+.fgrid label{display:block;font-size:14px;font-weight:700;color:var(--ink2)}
+.fgrid label textarea{margin-top:4px;font-weight:400}
+.prop-h{font-weight:800;margin:18px 0 8px;color:var(--brand-ink)}
+.prop-h:first-of-type{margin-top:6px}
+.opt{font-size:12.5px;color:var(--muted);font-weight:400;margin-left:6px}
+.ranks{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.ranks label{font-size:14px;font-weight:700;color:var(--ink2)}
+select{width:100%;margin-top:4px;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff;font-weight:400}
+details.ref{border:1px solid var(--line);border-radius:12px;background:#fafbfc;margin:0 0 12px}
+details.ref>summary{cursor:pointer;padding:10px 14px;font-weight:700;color:var(--brand-ink);font-size:14.5px}
+details.ref ol{margin:0;padding:0 16px 12px 16px;list-style:none;font-size:14px;color:var(--ink2)}
+details.ref li{padding:3px 0}
+details.ref li b{color:var(--brand);margin-right:6px}
+.callout{background:var(--brand-soft);border-left:4px solid var(--brand);color:var(--brand-ink);border-radius:8px;padding:10px 12px;font-size:14.5px;margin:0 0 12px}
+
+/* 이동·제출 */
+.pager{display:flex;justify-content:space-between;gap:10px;margin:10px 0 14px}
+.pager .sp{flex:1}
+.btn{background:var(--brand);color:#fff;border:0;border-radius:12px;padding:13px 30px;font-size:16.5px;font-weight:700;cursor:pointer;min-width:120px}
+.btn:hover{background:var(--brand-ink)}
+.btn:disabled{opacity:.6;cursor:wait}
+.btn.ghost{background:#fff;color:var(--brand);border:1.5px solid var(--brand)}
+.btn.start{background:#fff;color:var(--brand);font-size:18px;padding:15px 40px}
+.btn.start:hover{background:#eef4fa}
+.pmsg{display:none;color:var(--err);font-size:14px;text-align:right;margin:0 0 20px}
+.pmsg.on{display:block}
+.errbox{display:none;margin:0 0 16px;background:var(--err-soft);color:var(--err);border-radius:10px;padding:12px 14px;font-size:14px}
+.errbox.on{display:block}
+.errbox a{color:var(--err);font-weight:700}
+.screen{display:none;max-width:640px;margin:64px auto;text-align:center;padding:0 16px}
+.screen .ok{width:64px;height:64px;border-radius:50%;background:var(--ok-soft);color:var(--ok);display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 18px}
+.screen .again{margin-top:28px;font-size:13.5px;color:var(--muted)}
+.screen .again a{color:var(--brand)}
+.hint{font-size:13px;color:var(--muted)}
+.topics{margin:6px 0 0;padding-left:20px}
+footer{color:var(--muted);font-size:13px;text-align:center;padding:20px 0 48px}
+</style>
+</head>
+<body class="intro">
+
+<div id="app">
+  <div class="testbar" id="testbar" hidden>시험용 화면입니다. 구글에 올리기 전이라 응답이 저장되지 않습니다.</div>
+  <div class="topbar">
+    <div class="wrap row">
+      <div class="t" id="topTitle"></div>
+      <div class="prog"><span id="progTxt">0%</span><div class="bar"><i id="progBar"></i></div></div>
+      <div class="saved" id="savedTxt"></div>
+    </div>
+    <div class="wrap"><nav class="nav" id="nav"></nav></div>
+  </div>
+  <header class="hero"><div class="wrap" id="hero"></div></header>
+  <main class="wrap" id="form"></main>
+  <footer id="foot"></footer>
+</div>
+
+<div class="screen" id="done">
+  <div class="ok">✓</div>
+  <h2>응답이 제출되었습니다</h2>
+  <p>조사에 참여해 주셔서 감사합니다.<br>보내 주신 의견은 고교-대학 연계 활동의 방향을 정리하는 데 쓰겠습니다.</p>
+  <p class="hint" id="doneId"></p>
+  <p class="again">같은 기기에서 다른 분이 응답하시려면 <a href="#" id="againBtn">새 응답 시작</a>을 눌러 주십시오.</p>
+</div>
+<div class="screen" id="closed">
+  <h2>조사가 마감되었습니다</h2>
+  <p>관심을 가져 주셔서 감사합니다.</p>
+</div>
+
+<script src="config.js"></script>
+<script>window.SURVEY_CONFIG = window.SURVEY_CONFIG || {};</script>
+<script>
+(function(){
+'use strict';
+const SPEC = {"form": "univ", "version": "v11(1119)", "title": "고교-대학 연계 활동 설문(대학용)", "kicker": "한국대학교육협의회 정책연구", "h1": ["고교-대학 연계 활동의 방향에 관한 설문", "대학 입학처용"], "intro": ["고교교육 기여대학 지원사업에서 대학은 고교와 여러 연계 활동을 하고 있습니다. 이 조사는 그 활동이 앞으로 어떤 방향으로 가야 할지 현장의 의견을 듣고자 합니다. 한국대학교육협의회가 의뢰한 정책연구 「고교-대학 연계 프로그램 운영 현황과 과제」의 일부입니다.", "대학 입학처의 입학처장(부처장), 전임·전환·교수 입학사정관, 입학 업무 담당 직원께 드리는 설문입니다. 평가에만 참여하시는 위촉 입학사정관께는 드리지 않습니다. 일부 문항은 고교 교사와 시도교육청 장학사께도 똑같이 여쭈어, 대학과 학교 현장의 생각을 비교합니다.", "특히 Ⅳ(새로운 연계 활동 제안)에서는 대학이 새로 해 볼 만한 활동을 제안받습니다. 짧게라도 적어 주시면 연구에 큰 도움이 됩니다.", "응답 내용은 연구 목적의 통계로만 쓰며, 개인이나 소속 기관을 알아볼 수 있는 형태로 공개하지 않습니다. 소재지는 권역 단위로만 여쭙니다. 응답에는 15~20분 정도 걸립니다."], "meta": ["약 15~20분", "한 분이 한 번만 응답해 주십시오", "작성 내용은 이 브라우저에 자동으로 임시저장됩니다", "고르는 문항(*)은 필수, 적는 문항은 선택입니다"], "sign": "2026년 11월 「고교-대학 연계 프로그램 운영 현황과 과제」 연구진", "pages": [{"nav": "Ⅰ", "parts": [{"num": "Ⅰ", "title": "응답자 배경", "cards": [[{"type": "choice", "key": "1-1", "col": "1-1 직위", "q": "직위", "other": 6, "opts": ["입학처장(부처장 포함)", "전임 입학사정관", "전환 입학사정관", "교수 입학사정관", "입학처 직원", "기타"]}, {"type": "choice", "key": "1-2", "col": "1-2 입학 업무 경력", "q": "입학 업무 경력", "opts": ["3년 미만", "3~5년", "6~10년", "11~15년", "16년 이상"]}, {"type": "choice", "key": "1-3", "col": "1-3 권역", "q": "대학 소재 권역", "opts": ["수도권(서울·인천·경기)", "충청권(대전·세종·충북·충남)", "호남권(전남광주·전북)", "대구·경북권", "부산·울산·경남권", "강원권", "제주권"]}, {"type": "choice", "key": "1-4", "col": "1-4 설립 유형", "q": "대학 설립 유형", "opts": ["국공립", "사립"]}, {"type": "choice", "key": "1-5", "col": "1-5 대학 규모", "q": "대학 규모(2026학년도 정원 내 모집인원)", "opts": ["1,500명 미만", "1,500~2,499명", "2,500~3,499명", "3,500명 이상"]}, {"type": "choice", "key": "1-6", "col": "1-6 사업 참여", "q": "귀 대학은 고교교육 기여대학 지원사업에 참여하고 있습니까?", "stack": true, "opts": ["2026년 현재 참여", "이전에 참여했으나 지금은 참여하지 않음", "참여한 적 없음"]}]]}]}, {"nav": "Ⅱ·Ⅲ", "parts": [{"num": "Ⅱ", "title": "현재 운영되는 연계 활동", "lead": ["대학들이 지금 이 사업으로 운영하는 고교-대학 연계 활동을 유형별로 묶었습니다. 유형마다 앞으로의 방향과 지난 1년의 직접 참여 여부를 답해 주십시오.", [["방향:", "앞으로 이 활동을 이 사업에서 어떻게 하는 것이 바람직하다고 보십니까?"], ["직접 참여:", "지난 1년 동안 이 활동의 운영에 직접 참여하셨으면 표시해 주십시오."]]], "cards": [[{"type": "acts", "items": [{"no": "2-1", "name": "교사 대상 모의평가", "desc": "고교 교사가 대학의 실제 평가 기준으로 모의평가 사례를 서류평가해 봄. 대학은 그 사례의 평가 결과와 근거, 입시 통계를 안내함. 진학 담당뿐 아니라 1·2학년 담임, 교육과정 담당 교사도 대상임."}, {"no": "2-2", "name": "학생 대상 모의면접·실기", "desc": "학생이 대학의 실제 평가 방식으로 모의면접, 모의실기 등을 해 보고, 결과와 근거를 안내받음. 필요하면 학부모도 함께함."}, {"no": "2-3", "name": "교사-대학 전형 협력(자문·의견 교환)", "desc": "고교 교사가 대학의 전형 설계에 자문함. 또는 입학사정관과 교사가 학생부 기록과 고교 교육과정 운영을 두고 의견을 나눔."}, {"no": "2-4", "name": "정보소외 지역·학교 방문 지원", "desc": "진학 정보를 얻기 어려운 학교를 대학이 찾아가 상담, 모의면접, 전공 체험을 제공함. 여러 대학이 함께 운영하기도 함. 대상은 군·읍·면 지역 학교, 소규모 학교, 저소득·다문화 학생 비율이 높은 학교 등임."}, {"no": "2-5", "name": "입학사정관 진로·진학 상담", "desc": "입학사정관이 학생, 학부모, 교사에게 맞춤 상담을 제공함. 상담은 전형 정보와 근거 자료(상담 카드 등)를 바탕으로 함."}, {"no": "2-6", "name": "대학 자원 활용 탐구·진로 체험", "desc": "교수, 대학원생, 재학생이 대학의 실험·실습 시설에서 고교생의 탐구와 전공 체험을 지원함. 교수의 전공 탐색 강의도 포함함."}, {"no": "2-7", "name": "교과 수업 지원", "desc": "대학 교원이 고교생에게 교과 수업을 직접 함. 고교학점제 선택과목 개설, 학점인정과정 등이 해당함."}, {"no": "2-8", "name": "교과 교육 역량 지원", "desc": "간호·보건 같은 특수 분야 과목에서 대학 교원이 고교의 교과 교육을 도움. 과목 내용 구성 자문, 교사 연수, 교수·학습 자료 개발이 해당함."}, {"no": "2-9", "name": "일반 입시 설명회·박람회", "desc": "대학 전형 안내 중심의 설명회와 박람회."}, {"no": "2-10", "name": "대학 견학·일반 진로 특강", "desc": "캠퍼스 투어와 일반 진로 특강. 대학 시설을 활용한 실습이나 교수의 지도가 있는 활동은 제외함."}], "cols": [{"short": "방향", "label": "방향", "opts": ["확대", "현 수준 유지", "축소", "다른 사업이나 기관이 맡는 것이 적절", "잘 모르겠음"]}], "check": {"short": "직접 참여", "label": "지난 1년 동안 이 활동의 운영에 직접 참여함"}}]]}, {"num": "Ⅲ", "title": "운영 방식", "cards": [[{"type": "multi", "key": "3-1", "col": "3-1 실적 인정 방식", "max": 3, "excl": [7], "other": 8, "q": "이 사업은 대학이 한 고교 연계 활동을 실적으로 인정해 대학을 평가합니다. 지금 인정되는지와 관계없이, 앞으로 어떤 방식으로 운영한 활동을 실적으로 인정하는 것이 바람직하다고 보십니까? 세 개까지 골라 주십시오.", "hint": "'실적으로 인정할 만한 방식 없음'을 고르시면 다른 보기는 해제됩니다.", "opts": ["교사 대상 모의평가를 공개 모집으로 운영하고, 가상 사례를 평가해 본 뒤 그 결과와 근거를 안내함", "학생 대상 모의면접·실기를 공개 모집으로 운영하고, 결과를 안내함", "교사 자문을 받은 뒤, 대학이 반영 여부와 그 이유를 고교에 알려 줌", "정보소외 학교를 여러 대학이 권역별로 나누어 정기적으로 방문함. 방문 학교는 교육청 자료를 참고해 대학이 정함", "진로·진학 상담을 전형 정보와 근거 자료(상담 카드 등)에 바탕을 두고 운영함", "고교생 대상 교과 수업(고교학점제 선택과목 개설, 학점인정과정 등)을 대학 교원이 직접 운영함", "실적으로 인정할 만한 방식 없음", "기타"]}]]}]}, {"nav": "Ⅳ", "parts": [{"num": "Ⅳ", "title": "새로운 연계 활동 제안", "cards": [[{"type": "text", "key": "4-1", "col": "4-1 대학 도움이 필요한 문제", "q": "학교 현장이 겪는 대입·진학 문제 가운데, 고교 여건만으로는 풀기 어려워 대학의 도움이 필요하다고 보시는 것은 무엇입니까?"}], [{"type": "proposal", "key": "4-2", "q": "이 사업에서 대학이 새로 해 볼 만한 활동을 제안해 주십시오. 지금 하지 않는 활동이면 더 좋습니다. 하나만 적으셔도 됩니다.", "hint": "떠오르지 않으면 아래 주제 가운데 하나를 떠올려 보셔도 좋습니다.", "topics": ["2028학년도 대입 개편(서·논술형 평가 확대)", "인공지능을 활용한 학습", "고교학점제 과목 이수", "지역·계층 간 정보 격차", "진학 관련 사교육"], "sets": [{"title": "제안 1"}, {"title": "제안 2", "note": "선택"}], "fields": [{"short": "무엇을", "label": "어떤 활동입니까?"}, {"short": "누구에게", "label": "누구에게 하는 활동입니까? (교사, 학생, 학부모, 교육청 등)"}, {"short": "왜 대학이", "label": "왜 대학이 해야 합니까? (대학만 가진 자원이나 권한)"}, {"short": "기대하는 변화", "label": "어떤 변화를 기대하십니까?"}]}]]}]}, {"nav": "Ⅴ", "parts": [{"num": "Ⅴ", "title": "새로 도입할 만한 활동에 대한 의견", "lead": ["연구진이 검토한 새 활동입니다. 활동마다 중요도와 현재 수준을 표시해 주십시오.", [["중요도:", "이 사업에서 대학이 하는 활동으로서 얼마나 중요하다고 보십니까?"], ["현재 수준:", "지금 대학들이 전반적으로 이 활동을 실제로 얼마나 하고 있습니까? 귀 대학 한 곳이 아니라 대학 전반을 두고, 제도나 지침에 있는지가 아니라 아시는 범위에서 실제로 이루어지는 정도를 답해 주십시오. 잘 모르시면 '모름'을 골라 주십시오."]], "척도: 1 매우 낮음, 2 낮음, 3 보통, 4 높음, 5 매우 높음(숫자가 클수록 높음)"], "cards": [[{"type": "borich", "labels": ["매우 낮음", "낮음", "보통", "높음", "매우 높음"], "items": [{"no": "5-1", "name": "진로·융합선택과목 반영 방식 공동연구", "desc": "진로선택·융합선택과목의 성적(성취도, 석차등급)을 전형에서 어떻게 해석하고 반영할지 연구해, 그 결과를 미리 안내함. 연구는 대학이 주관하고 고교 교사가 참여함. 반영 방식은 대학이 정함."}, {"no": "5-2", "name": "학과별 이수 과목 분석·안내", "desc": "대학이 모집단위별로 고교 이수 과목과 입학 후 학업 성취(학점 등)의 관계를 분석함. 또 지원자와 입학생의 과목 이수 현황을 고교생이 과목을 선택하기 전에 안내함. 개별 학생의 자료는 다루지 않음."}, {"no": "5-3", "name": "학생부 기록 여건과 평가 관점의 고교-대학 상호 공유", "desc": "대학과 고교가 해마다 학생부 평가와 기록에 관한 자료를 주고받음. 대학은 서류평가 결과를 분석해, 학생부 기록을 어떤 관점으로 평가하는지 정리해 줌. 고교는 학생부를 어떤 근거로 기록하는지와 기록할 때의 여건을 정리해 줌. 특정 고교나 개별 학생의 평가 결과는 다루지 않음."}, {"no": "5-4", "name": "입학사정관의 고교 수업·평가 참관", "desc": "입학사정관이 고교의 수업, 수행평가, 학생부 기록 과정을 참관하고 교사와 의견을 나눔. 참관할 고교는 공개 모집이나 교육청 추천으로 정함."}, {"no": "5-5", "name": "고교-대학 간 전형 질의응답 체계 운영", "desc": "고교 교사와 교육청 관계자가 전형에 관해 질의하면, 대학이 전형 설계의 취지와 함께 답함. 자주 나오는 질의와 답은 정리해 공유함."}, {"no": "5-6", "name": "위촉 입학사정관 표준 연수과정의 대학별 운영", "desc": "평가에 참여하는 위촉 입학사정관을 대상으로, 각 대학이 표준 연수과정을 운영함. 고교 교육과정과 학생부의 이해 등을 다룸."}, {"no": "5-7", "name": "입학사정관 평가 운영 우수 사례 발굴·확산", "desc": "대학이 평가 운영의 우수 사례를 정리해 다른 대학과 공유함. 평가자 교육, 평가 절차와 기준의 관리 등이 해당함."}, {"no": "5-8", "name": "입학사정관 인증 연수 참가 지원", "desc": "입학사정관이 외부 기관의 표준·인증 연수에 참가할 때, 그 비용(교육비, 출장비 등)을 지원함."}, {"no": "5-9", "name": "고교-대학 종단 자료 구축", "desc": "학생의 동의를 받아, 고교 때의 이수 과목과 활동, 입학 전형, 대학에서의 성적과 진로를 이은 자료를 쌓음. 공통 양식은 대교협과 참여 대학이 함께 정함."}]}]]}]}, {"nav": "Ⅵ", "parts": [{"num": "Ⅵ", "title": "우선순위와 운영 여건", "cards": [[{"type": "rank", "key": "6-1", "q": "Ⅴ의 활동(5-1~5-9) 가운데 이 사업의 평가지표에 넣어야 할 것을 세 개까지, 중요한 순서대로 골라 주십시오.", "n": 3, "items": [{"no": "5-1", "name": "진로·융합선택과목 반영 방식 공동연구"}, {"no": "5-2", "name": "학과별 이수 과목 분석·안내"}, {"no": "5-3", "name": "학생부 기록 여건과 평가 관점의 고교-대학 상호 공유"}, {"no": "5-4", "name": "입학사정관의 고교 수업·평가 참관"}, {"no": "5-5", "name": "고교-대학 간 전형 질의응답 체계 운영"}, {"no": "5-6", "name": "위촉 입학사정관 표준 연수과정의 대학별 운영"}, {"no": "5-7", "name": "입학사정관 평가 운영 우수 사례 발굴·확산"}, {"no": "5-8", "name": "입학사정관 인증 연수 참가 지원"}, {"no": "5-9", "name": "고교-대학 종단 자료 구축"}]}], [{"type": "choice", "key": "6-2", "col": "6-2 특수 분야 협력 방식", "stack": true, "q": "간호·보건처럼 고교 교사가 가르치기 어려운 특수 분야 과목이 있습니다. 이런 과목의 개설과 교사 연수에 대학 교원이 협력한다면, 어떤 방식이 가장 적절하다고 보십니까?", "opts": ["이 사업 예산으로 대학이 과목과 연수를 직접 운영", "교육청 예산으로 운영하고, 대학 교원은 교육청의 요청을 받아 강사로 협조", "대학 자체 예산으로 운영", "대학의 협력이 필요하지 않음", "잘 모르겠음"]}, {"type": "choice", "key": "6-3", "col": "6-3 탐구·진로 체험 실적 산정", "stack": true, "q": "Ⅱ의 2-6(대학 자원 활용 탐구·진로 체험)은 이 사업의 실적으로 어떻게 산정하는 것이 적절하다고 보십니까?", "opts": ["고교와의 협력 활동에 넣어 산정", "대학 고유 활동으로 따로 산정", "정보소외 지역·계층 학생이 대상일 때만 사회적 책무 활동으로 산정", "이 사업에서 제외", "잘 모르겠음"]}, {"type": "choice", "key": "6-4", "col": "6-4 평가 업무 부담", "q": "고교 연계 업무가 입학사정관의 평가 업무에 주는 부담은 어느 정도입니까?", "opts": ["거의 없음", "작음", "보통", "큼", "매우 큼"]}, {"type": "choice", "key": "6-5", "col": "6-5 운영 주체", "stack": true, "show": {"key": "1-6", "notIn": [2, 3]}, "q": "귀 대학이 이 사업으로 하는 고교 연계 프로그램은 주로 어느 부서가 운영합니까?", "opts": ["입학처 단독", "입학처가 주관하고 다른 부서·학과가 참여", "다른 부서가 주관하고 입학처가 지원", "부서별로 따로 운영", "모름"]}, {"type": "choice", "key": "6-6", "col": "6-6 타 사업 고교 연계", "stack": true, "q": "귀 대학은 이 사업이 아닌 다른 재정지원사업으로 고교 연계 활동을 운영합니까?", "hint": "대학혁신지원사업, 지역성장 인재양성체계(ANCHOR, 이전 명칭 RISE) 등이 해당합니다.", "opts": ["운영하며, 주로 입학처가 맡음", "운영하며, 주로 다른 부서가 주관하고 입학처가 지원", "운영하며, 주로 다른 부서가 단독으로 맡음", "운영하지 않음", "모름"]}, {"type": "choice", "key": "6-7", "col": "6-7 협력 요청 어려움", "q": "귀 대학이 시도교육청이나 고교에 협력을 요청했는데, 상대가 응하지 않거나 늦게 응해서 프로그램 운영이 어려웠던 적이 있습니까?", "stack": true, "opts": ["거의 없음", "가끔 있음", "자주 있음", "협력을 요청한 적 없음"]}, {"type": "choice", "key": "6-8", "col": "6-8 참여 고교 범위", "show": {"key": "1-6", "notIn": [2, 3]}, "q": "귀 대학이 이 사업으로 하는 고교 연계 프로그램에는 주로 어느 지역의 고교가 참여합니까?", "opts": ["대학과 같은 시도", "같은 권역의 다른 시도(권역은 1-3의 구분)", "전국", "모름"]}]]}]}, {"nav": "Ⅶ", "parts": [{"num": "Ⅶ", "title": "그 밖의 의견", "cards": [[{"type": "text", "key": "7-1", "col": "7-1 생각의 차이", "q": "대입을 두고 대학과 고교(교육청)의 생각이 가장 크게 다르다고 느끼시는 부분은 무엇입니까?"}, {"type": "text", "key": "7-2", "col": "7-2 그 밖의 의견", "q": "그 밖에 이 사업의 고교-대학 연계 방향에 관한 의견을 적어 주십시오."}]]}]}]};
+const CFG = Object.assign({SCRIPT_URL:'', CONTACT:'', DEADLINE:'', CLOSED:false}, window.SURVEY_CONFIG || {});
+const DRAFT_KEY = 'hs-univ-link-survey-2026:' + SPEC.form;
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const CIRC = i => String.fromCharCode(0x2460 + i);
+const REQ = '<span class="req" title="필수">*</span>';
+
+/* ---------------- 문항 등록 ---------------- */
+const FIELDS = [];           // {name, col, kind, required, key, host}
+const KEY2NAME = {};         // 문항 번호 -> 입력 이름(표시 조건에 씀)
+function addField(o){
+  o.name = 'f' + FIELDS.length; o.host = o.host || o.name;
+  FIELDS.push(o); if (o.key) KEY2NAME[o.key] = o.name; return o.name;
+}
+const condAttr = b => b.show ? ` data-cond="${esc(JSON.stringify(b.show))}"` : '';
+const tagHtml = b => b.tag ? `<span class="tag">${esc(b.tag)}</span>` : '';
+
+function rChoice(b){
+  const required = b.required !== false;
+  const name = addField({col:b.col, kind:'radio', required, key:b.key});
+  let other = '';
+  if (b.other){
+    const on = addField({col:b.col + ' 기타', kind:'other', of:name, val:String(b.other), host:name});
+    other = `<input type="text" class="other-in" name="${on}" data-other-of="${name}" data-other-val="${b.other}" placeholder="기타 내용을 적어 주십시오" maxlength="200">`;
+  }
+  return `<div class="q" data-host="${name}"${condAttr(b)}>
+    <div class="q-h"><span class="qn">${esc(b.key)}</span>${tagHtml(b)}${esc(b.q)}${required ? REQ : ''}</div>
+    ${b.hint ? `<div class="q-sub">${esc(b.hint)}</div>` : ''}
+    <div class="opts${b.stack ? ' stack' : ''}">${b.opts.map((o,i) => `<label><input type="radio" name="${name}" value="${i+1}"><span><i>${CIRC(i)}</i>${esc(o)}</span></label>`).join('')}</div>
+    ${other}<div class="rmsg">보기 하나를 골라 주십시오.</div></div>`;
+}
+
+function rMulti(b){
+  const name = addField({col:b.col, kind:'multi', required:b.required !== false, key:b.key});
+  let other = '';
+  if (b.other){
+    const on = addField({col:b.col + ' 기타', kind:'other', of:name, val:String(b.other), host:name});
+    other = `<input type="text" class="other-in" name="${on}" data-other-of="${name}" data-other-val="${b.other}" placeholder="기타 내용을 적어 주십시오" maxlength="200">`;
+  }
+  const excl = (b.excl || []).map(String);
+  return `<div class="q" data-host="${name}"${condAttr(b)}>
+    <div class="q-h"><span class="qn">${esc(b.key)}</span>${tagHtml(b)}${esc(b.q)}${REQ}</div>
+    ${b.hint ? `<div class="q-sub">${esc(b.hint)}</div>` : ''}
+    <div class="opts stack" data-max="${b.max || 0}" data-excl="${esc(JSON.stringify(excl))}">${b.opts.map((o,i) => `<label><input type="checkbox" name="${name}" value="${i+1}"><span><i>${CIRC(i)}</i>${esc(o)}</span></label>`).join('')}</div>
+    <div class="maxmsg">${b.max ? b.max + '개까지 고를 수 있습니다. 다른 보기를 고르시려면 먼저 고른 것을 해제해 주십시오.' : ''}</div>
+    ${other}<div class="rmsg">보기를 하나 이상 골라 주십시오.</div></div>`;
+}
+
+function rText(b){
+  const name = addField({col:b.col, kind:'text', required:false, key:b.key});
+  return `<div class="q" data-host="${name}"${condAttr(b)}>
+    <div class="q-h"><span class="qn">${esc(b.key)}</span>${esc(b.q)}<span class="opt">선택</span></div>
+    ${b.hint ? `<div class="q-sub">${esc(b.hint)}</div>` : ''}
+    <textarea name="${name}" maxlength="3000"></textarea></div>`;
+}
+
+function rProposal(b){
+  let h = `<div class="q"><div class="q-h"><span class="qn">${esc(b.key)}</span>${esc(b.q)}<span class="opt">선택</span></div>
+    ${b.hint ? `<div class="q-sub">${esc(b.hint)}${b.topics ? '<ul class="topics">' + b.topics.map(t => `<li>${esc(t)}</li>`).join('') + '</ul>' : ''}</div>` : ''}`;
+  b.sets.forEach(s => {
+    h += `<div class="prop-h">${esc(s.title)}${s.note ? `<span class="opt">${esc(s.note)}</span>` : ''}</div><div class="fgrid">`;
+    b.fields.forEach(f => {
+      const name = addField({col:`${b.key} ${s.title} ${f.short}`, kind:'text', required:false});
+      h += `<label>${esc(f.label)}<textarea class="sm" name="${name}" maxlength="2000"></textarea></label>`;
+    });
+    h += '</div>';
+  });
+  return h + '</div>';
+}
+
+function ratingHtml(name, labels, dk){
+  let h = `<div class="rating${dk ? ' dk' : ''}">`;
+  labels.forEach((l,i) => { h += `<label><input type="radio" name="${name}" value="${i+1}"><span><b>${i+1}</b><small>${esc(l)}</small></span></label>`; });
+  if (dk) h += `<label><input type="radio" name="${name}" value="모름"><span><b>?</b><small>모름</small></span></label>`;
+  return h + '</div>';
+}
+
+/* Ⅱ: 활동마다 방향(과 대학 없이 가능한 정도), 참여 표시 */
+function rActs(b){
+  let h = '';
+  b.items.forEach(it => {
+    h += `<div class="item"><div class="item-h"><span class="no">${esc(it.no)}</span>${esc(it.name)}</div><div class="item-d">${esc(it.desc)}</div>`;
+    b.cols.forEach(c => {
+      const name = addField({col:`${it.no} ${c.short}`, kind:'radio', required:true});
+      h += `<div class="sub" data-host="${name}"><div class="rlabel">${esc(c.label)}${REQ}</div>
+        <div class="opts">${c.opts.map((o,i) => `<label><input type="radio" name="${name}" value="${i+1}"><span><i>${CIRC(i)}</i>${esc(o)}</span></label>`).join('')}</div>
+        <div class="rmsg">보기 하나를 골라 주십시오.</div></div>`;
+    });
+    const cn = addField({col:`${it.no} ${b.check.short}`, kind:'check', required:false});
+    h += `<label class="chk"><input type="checkbox" name="${cn}" value="1">${esc(b.check.label)}</label></div>`;
+  });
+  return h;
+}
+
+/* Ⅴ: 활동마다 중요도와 현재 수준 */
+function rBorich(b){
+  let h = '';
+  b.items.forEach(it => {
+    h += `<div class="item"><div class="item-h"><span class="no">${esc(it.no)}</span>${esc(it.name)}</div><div class="item-d">${esc(it.desc)}</div>`;
+    const a = addField({col:`${it.no} 중요도`, kind:'radio', required:true});
+    h += `<div class="sub" data-host="${a}"><div class="rlabel">중요도${REQ}</div>${ratingHtml(a, b.labels, false)}<div class="rmsg">중요도를 골라 주십시오.</div></div>`;
+    const c = addField({col:`${it.no} 현재 수준`, kind:'radio', required:true});
+    h += `<div class="sub" data-host="${c}"><div class="rlabel">현재 수준${REQ}</div>${ratingHtml(c, b.labels, true)}<div class="rmsg">현재 수준을 골라 주십시오. 잘 모르시면 '모름'을 골라 주십시오.</div></div></div>`;
+  });
+  return h;
+}
+
+function rRank(b){
+  let h = `<div class="q"><div class="q-h"><span class="qn">${esc(b.key)}</span>${esc(b.q)}<span class="opt">선택</span></div><div class="ranks" data-rank="1">`;
+  for (let k = 1; k <= b.n; k++){
+    const name = addField({col:`${b.key} ${k}순위`, kind:'select', required:false});
+    h += `<label>${k}순위<select name="${name}"><option value="">선택 안 함</option>${b.items.map(it => `<option value="${esc(it.no)}">${esc(it.no)} ${esc(it.name)}</option>`).join('')}</select></label>`;
+  }
+  return h + '</div><div class="rmsg in" data-rankmsg="1" style="display:none">같은 활동을 두 번 고를 수 없습니다.</div></div>';
+}
+
+function rRef(b){
+  return `<details class="ref"><summary>${esc(b.title)}</summary><ol>${b.items.map(it => `<li><b>${esc(it.no)}</b>${esc(it.name)}</li>`).join('')}</ol></details>`;
+}
+
+const RENDER = {choice:rChoice, multi:rMulti, text:rText, proposal:rProposal, acts:rActs, borich:rBorich, rank:rRank, ref:rRef,
+  callout: b => `<div class="callout">${esc(b.text)}</div>`};
+
+/* ---------------- 화면 만들기 ---------------- */
+function build(){
+  document.title = SPEC.title;
+  $('#topTitle').textContent = SPEC.title;
+  $('#foot').textContent = SPEC.sign;
+  const contact = '문의: 연구보조원 김영우(한국외국어대학교)' + (CFG.CONTACT ? ' ' + CFG.CONTACT : '');
+  $('#hero').innerHTML = `<div class="kicker">${esc(SPEC.kicker)}</div><h1>${SPEC.h1.map(esc).join('<br>')}</h1>`
+    + SPEC.intro.map(p => `<p>${esc(p)}</p>`).join('')
+    + `<p>${esc(contact)}</p><div class="sign">${esc(SPEC.sign)}</div>`
+    + `<div class="meta">${SPEC.meta.concat(CFG.DEADLINE ? ['응답 기한: ' + CFG.DEADLINE] : []).map(m => `<span>${esc(m)}</span>`).join('')}</div>`
+    + `<div class="start-row"><button class="btn start" id="startBtn" type="button">응답 시작하기 →</button></div>`;
+
+  let html = '', nav = '';
+  SPEC.pages.forEach((pg, pi) => {
+    const step = pi + 1, last = step === SPEC.pages.length;
+    nav += `<a href="#" data-step="${step}">${esc(pg.nav)}</a>`;
+    html += `<section class="page" data-step="${step}">`;
+    pg.parts.forEach((pt, k) => {
+      html += `<div class="part-h${k ? ' more' : ''}"><span class="num">${esc(pt.num)}</span><h2>${esc(pt.title)}</h2></div>`;
+      if (pt.lead) html += `<div class="lead">${pt.lead.map(l => Array.isArray(l) ? '<ul>' + l.map(x => `<li><b>${esc(x[0])}</b> ${esc(x[1])}</li>`).join('') + '</ul>' : `<div>${esc(l)}</div>`).join('')}</div>`;
+      pt.cards.forEach(card => { html += '<div class="card">' + card.map(b => RENDER[b.type](b)).join('') + '</div>'; });
+    });
+    if (last) html += '<div class="errbox" id="errBox"></div>';
+    html += `<div class="pager">${step > 1 ? `<button class="btn ghost" type="button" data-go="${step-1}">← 이전</button>` : ''}<span class="sp"></span>`
+      + (last ? '<button class="btn" type="button" id="submitBtn">응답 제출하기</button>' : `<button class="btn" type="button" data-go="${step+1}">다음 →</button>`)
+      + '</div><div class="pmsg"></div></section>';
+  });
+  $('#form').innerHTML = html; $('#nav').innerHTML = nav;
+  if (!CFG.GAS && !CFG.SCRIPT_URL) $('#testbar').hidden = false;
+}
+
+/* ---------------- 값 읽기 ---------------- */
+const hostEl = f => document.querySelector(`[data-host="${f.host}"]`) || document.querySelector(`[name="${f.name}"]`);
+const isShown = f => { const h = hostEl(f); return !(h && h.closest('[hidden]')); };
+function rawVal(f){
+  if (f.kind === 'radio'){ const e = document.querySelector(`input[name="${f.name}"]:checked`); if (!e) return ''; return /^\d+$/.test(e.value) ? +e.value : e.value; }
+  if (f.kind === 'multi') return $$(`input[name="${f.name}"]:checked`).map(e => e.value).join(';');
+  if (f.kind === 'check') return document.querySelector(`input[name="${f.name}"]`).checked ? 1 : 0;
+  const e = document.querySelector(`[name="${f.name}"]`); const v = e ? e.value.trim() : '';
+  if (f.kind === 'other') return otherOn(f) ? v : '';
+  return v;
+}
+const otherOn = f => !!document.querySelector(`input[name="${f.of}"][value="${f.val}"]:checked`);
+const val = f => isShown(f) ? rawVal(f) : '';
+const answered = f => { const v = val(f); return v !== '' && v != null; };
+
+/* ---------------- 표시 조건·보기 제약 ---------------- */
+function applyConds(){
+  $$('[data-cond]').forEach(el => {
+    const c = JSON.parse(el.dataset.cond); const src = FIELDS.find(f => f.name === KEY2NAME[c.key]);
+    const v = src ? rawVal(src) : '';
+    el.hidden = c.in ? !c.in.includes(v) : (c.notIn ? c.notIn.includes(v) : false);
+  });
+}
+function onMultiChange(input){
+  const box = input.closest('.opts'); if (!box || !box.dataset.excl) return;
+  const excl = JSON.parse(box.dataset.excl), max = +box.dataset.max || 0;
+  const all = Array.from(box.querySelectorAll('input[type=checkbox]'));
+  const msg = box.parentElement.querySelector('.maxmsg'); if (msg) msg.classList.remove('on');
+  if (input.checked){
+    if (excl.includes(input.value)) all.forEach(x => { if (x !== input) x.checked = false; });
+    else all.forEach(x => { if (excl.includes(x.value)) x.checked = false; });
+    if (max && all.filter(x => x.checked).length > max){ input.checked = false; if (msg) msg.classList.add('on'); }
+  }
+}
+function rankDup(){
+  let dup = false;
+  $$('[data-rank]').forEach(box => {
+    const vals = Array.from(box.querySelectorAll('select')).map(s => s.value).filter(Boolean);
+    const d = new Set(vals).size !== vals.length; if (d) dup = true;
+    const m = box.parentElement.querySelector('[data-rankmsg]'); if (m) m.style.display = d ? 'block' : 'none';
+  });
+  return dup;
+}
+
+/* ---------------- 임시저장 ---------------- */
+let saveTimer, startedAt = Date.now(), submitted = false;
+function saveDraft(){
+  clearTimeout(saveTimer);
+  if (submitted) return;
+  saveTimer = setTimeout(() => {
+    try {
+      const d = {startedAt, v:{}};
+      $$('#form input, #form textarea, #form select').forEach(el => {
+        if (!el.name) return;
+        if (el.type === 'radio'){ if (el.checked) d.v[el.name] = el.value; }
+        else if (el.type === 'checkbox'){ if (el.checked) (d.v[el.name] = d.v[el.name] || []).push(el.value); }
+        else if (el.value) d.v[el.name] = el.value;
+      });
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(d));
+      const t = new Date(); $('#savedTxt').textContent = `임시저장 ${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`;
+    } catch(e){}
+  }, 400);
+}
+function loadDraft(){
+  try {
+    const d = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null'); if (!d) return;
+    if (d.startedAt) startedAt = d.startedAt;
+    Object.entries(d.v || {}).forEach(([name, v]) => {
+      $$(`[name="${name}"]`).forEach(el => {
+        if (el.type === 'radio') el.checked = el.value === v;
+        else if (el.type === 'checkbox') el.checked = Array.isArray(v) && v.includes(el.value);
+        else el.value = v;
+      });
+    });
+    $('#savedTxt').textContent = '임시저장 불러옴';
+  } catch(e){}
+}
+
+/* ---------------- 진행률 ---------------- */
+function pageOf(f){ const h = hostEl(f); const pg = h && h.closest('.page'); return pg ? +pg.dataset.step : 0; }
+function refreshUI(){
+  applyConds();
+  $$('.other-in').forEach(o => o.classList.toggle('on', !!document.querySelector(`input[name="${o.dataset.otherOf}"][value="${o.dataset.otherVal}"]:checked`)));
+  let total = 0, done = 0; const per = {};
+  FIELDS.forEach(f => {
+    if (!f.required || !isShown(f)) return;
+    const ok = answered(f), s = pageOf(f);
+    total++; if (ok) done++;
+    per[s] = per[s] || [0,0]; per[s][1]++; if (ok) per[s][0]++;
+    if (ok){ const h = hostEl(f); if (h) h.classList.remove('missing'); }
+  });
+  const pct = total ? Math.round(done / total * 100) : 0;
+  $('#progTxt').textContent = pct + '%'; $('#progBar').style.width = pct + '%';
+  $$('#nav a').forEach(a => { const s = per[+a.dataset.step]; a.classList.toggle('done', !!s && s[0] === s[1]); });
+  rankDup();
+}
+
+/* ---------------- 화면 이동 ---------------- */
+let step = 0;
+function showStep(k, target){
+  step = Math.max(0, Math.min(SPEC.pages.length, k));
+  document.body.classList.toggle('intro', step === 0);
+  $$('.page').forEach(pg => pg.classList.toggle('on', +pg.dataset.step === step));
+  $$('#nav a').forEach(a => a.classList.toggle('cur', +a.dataset.step === step));
+  $$('.pmsg').forEach(m => m.classList.remove('on'));
+  const cur = document.querySelector(`#nav a[data-step="${step}"]`); if (cur) cur.scrollIntoView({block:'nearest', inline:'center'});
+  if (target) target.scrollIntoView({block:'center'}); else window.scrollTo(0, 0);
+  try { localStorage.setItem(DRAFT_KEY + ':step', String(step)); } catch(e){}
+}
+function missing(k){
+  const out = [];
+  FIELDS.forEach(f => {
+    if (!f.required || !isShown(f) || (k && pageOf(f) !== k) || answered(f)) return;
+    const h = hostEl(f); if (h){ h.classList.add('missing'); out.push(h); }
+  });
+  return out;
+}
+function goTo(k){
+  if (k > step && step >= 1){
+    const miss = missing(step); const pg = document.querySelector(`.page[data-step="${step}"]`); const m = pg.querySelector('.pmsg');
+    if (miss.length){
+      m.textContent = `이 화면에 아직 답하지 않은 필수 문항이 ${miss.length}개 있습니다. 붉게 표시된 문항을 확인해 주십시오.`;
+      m.classList.add('on'); miss[0].scrollIntoView({behavior:'smooth', block:'center'}); return;
+    }
+    if (pg.querySelector('[data-rank]') && rankDup()){ m.textContent = '순위에 같은 활동이 두 번 들어 있습니다.'; m.classList.add('on'); return; }
+  }
+  showStep(k);
+}
+
+/* ---------------- 제출 ---------------- */
+function submit(){
+  const eb = $('#errBox'); const miss = missing(0);
+  if (miss.length){
+    eb.innerHTML = `답하지 않은 필수 문항이 <b>${miss.length}개</b> 있습니다. <a href="#" id="goMiss">첫 번째 문항으로 이동 →</a>`;
+    eb.classList.add('on');
+    $('#goMiss').onclick = e => { e.preventDefault(); const h = miss[0]; showStep(+h.closest('.page').dataset.step, h); };
+    return;
+  }
+  if (rankDup()){ eb.textContent = '순위에 같은 활동이 두 번 들어 있습니다.'; eb.classList.add('on'); return; }
+  eb.classList.remove('on');
+  const btn = $('#submitBtn'); btn.disabled = true; btn.textContent = '제출 중…';
+  const id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(16).slice(2);
+  const payload = {
+    form: SPEC.form, version: SPEC.version, responseId: id,
+    headers: ['응답ID','설문판','소요시간(분)'].concat(FIELDS.map(f => f.col)),
+    values: [id, SPEC.version, Math.round((Date.now() - startedAt) / 60000)].concat(FIELDS.map(val))
+  };
+  const ok = () => {
+    submitted = true; clearTimeout(saveTimer);
+    try { localStorage.removeItem(DRAFT_KEY); localStorage.removeItem(DRAFT_KEY + ':step'); localStorage.setItem(DRAFT_KEY + ':done', id); } catch(e){}
+    showDone(id);
+  };
+  const fail = err => {
+    btn.disabled = false; btn.textContent = '응답 제출하기';
+    eb.innerHTML = '제출 중 오류가 발생했습니다. 작성하신 내용은 이 브라우저에 임시저장되어 있으니 잠시 뒤 다시 눌러 주십시오.<br><small>' + esc(String(err && err.message || err)) + '</small>';
+    eb.classList.add('on');
+  };
+  if (window.__TEST_SUBMIT__) { window.__TEST_SUBMIT__(payload).then(ok, fail); return; }
+  if (window.google && google.script && google.script.run){
+    google.script.run
+      .withSuccessHandler(r => r && r.ok ? ok() : fail(r && r.error))
+      .withFailureHandler(fail)
+      .submit(payload);
+    return;
+  }
+  if (!CFG.SCRIPT_URL) { fail('시험용 화면이라 응답을 저장하지 않습니다.'); return; }
+  // GitHub판: 구글 로그인 정보를 싣지 않고 보낸다(계정이 여러 개 로그인된 기기에서도 저장되게)
+  fetch(CFG.SCRIPT_URL, {method:'POST', credentials:'omit', redirect:'follow', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(payload)})
+    .then(r => r.json()).then(r => r && r.ok ? ok() : fail(r && r.error)).catch(fail);
+}
+function showDone(id){
+  $('#app').style.display = 'none'; $('#done').style.display = 'block';
+  $('#doneId').textContent = id ? '응답 번호: ' + String(id).slice(0, 8) : '';
+  window.scrollTo(0, 0);
+}
+
+/* ---------------- 시작 ---------------- */
+if (CFG.CLOSED){ $('#app').style.display = 'none'; $('#closed').style.display = 'block'; return; }
+build();
+let doneId = null; try { doneId = localStorage.getItem(DRAFT_KEY + ':done'); } catch(e){}
+$('#againBtn').addEventListener('click', e => { e.preventDefault(); try { localStorage.removeItem(DRAFT_KEY + ':done'); } catch(err){} if (CFG.SELF_URL) window.open(CFG.SELF_URL, '_top'); else location.reload(); });
+if (doneId){ showDone(doneId); return; }
+loadDraft(); refreshUI();
+const form = $('#form');
+form.addEventListener('change', e => { if (e.target.type === 'checkbox') onMultiChange(e.target); refreshUI(); saveDraft(); });
+form.addEventListener('input', () => { refreshUI(); saveDraft(); });
+form.addEventListener('click', e => { const b = e.target.closest('[data-go]'); if (b) goTo(+b.dataset.go); });
+$('#submitBtn').addEventListener('click', submit);
+$('#startBtn').addEventListener('click', () => showStep(1));
+$('#nav').addEventListener('click', e => { const a = e.target.closest('a[data-step]'); if (!a) return; e.preventDefault(); showStep(+a.dataset.step); });
+let k0 = 0; try { k0 = +(localStorage.getItem(DRAFT_KEY + ':step') || 0); } catch(e){}
+showStep(k0 || 0);
+})();
+</script>
+</body>
+</html>
